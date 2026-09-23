@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Peticion de Vacaciones Personales</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="cabecera">
+    <h1>Peticion de Vacaciones Personales</h1>
+    <div id="responsable-activo" class="responsable-activo oculto">
+      <span id="datos-responsable"></span>
+      <button id="cerrar-sesion" class="boton-secundario">Cerrar sesion</button>
+    </div>
+  </header>
+
+  <main class="contenedor">
+    <section id="panel-login" class="tarjeta login-panel">
+      <h2>Acceso del responsable</h2>
+      <form id="form-login">
+        <label for="login-matricula">Matricula</label>
+        <input type="text" id="login-matricula" required autocomplete="username">
+
+        <label for="login-seccion">Seccion donde trabaja</label>
+        <input type="text" id="login-seccion" required>
+
+        <button type="submit" class="boton-principal">Entrar</button>
+      </form>
+      <div id="mensaje-login" class="mensaje oculto"></div>
+    </section>
+
+    <div id="panel-aplicacion" class="oculto">
+    <section class="tarjeta formulario">
+      <h2 id="titulo-formulario">Nueva peticion</h2>
+      <form id="form-vacaciones">
+        <label for="nombre_operario">Nombre del operario</label>
+        <input type="text" id="nombre_operario" name="nombre_operario" required>
+
+        <label for="matricula">Matricula</label>
+        <input type="text" id="matricula" name="matricula" required>
+
+        <div class="fila-fechas">
+          <div>
+            <label for="fecha_inicio">Fecha de inicio</label>
+            <input type="date" id="fecha_inicio" name="fecha_inicio" required>
+          </div>
+          <div>
+            <label for="fecha_fin">Fecha de fin</label>
+            <input type="date" id="fecha_fin" name="fecha_fin" required>
+          </div>
+        </div>
+
+        <label>Dias completos</label>
+        <input type="text" id="dias_completos" name="dias_completos" readonly>
+
+        <button id="boton-formulario" type="submit" class="boton-principal">Solicitar vacaciones</button>
+        <button id="cancelar-edicion" type="button" class="boton-secundario oculto">Cancelar edicion</button>
+      </form>
+
+      <div id="mensaje" class="mensaje oculto"></div>
+    </section>
+
+    <section class="tarjeta calendario-panel">
+      <h2>Calendario de vacaciones</h2>
+      <div class="calendario-cabecera">
+        <button id="mes-anterior" class="boton-secundario">&laquo;</button>
+        <span id="titulo-mes"></span>
+        <button id="mes-siguiente" class="boton-secundario">&raquo;</button>
+      </div>
+      <div id="calendario" class="calendario-grid"></div>
+      <div class="leyenda">
+        <span class="leyenda-item"><i class="cuadro ocupado"></i> Dias ocupados</span>
+        <span class="leyenda-item"><i class="cuadro libre"></i> Dias libres</span>
+      </div>
+    </section>
+
+    <section class="tarjeta lista-panel">
+      <h2>Peticiones registradas</h2>
+      <table id="tabla-peticiones">
+        <thead>
+          <tr>
+            <th>Operario</th>
+            <th>Matricula</th>
+            <th>Inicio</th>
+            <th>Fin</th>
+            <th>Dias</th>
+            <th>Responsable</th>
+            <th>Seccion</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </main>
+
+  <div id="modal-conflicto" class="modal oculto">
+    <div class="modal-contenido">
+      <h3>Error</h3>
+      <p id="modal-mensaje"></p>
+      <div class="modal-botones">
+        <button id="modal-cancelar" class="boton-secundario">Cancelar</button>
+        <button id="modal-continuar" class="boton-peligro">Si, continuar</button>
+      </div>
+    </div>
+  </div>
+  <div id="modal-eliminacion" class="modal oculto">
+    <div class="modal-contenido">
+      <h3>Confirmar eliminacion</h3>
+      <p>¿Seguro que quiere eliminar la tarea?</p>
+      <div class="modal-botones">
+        <button id="eliminar-cancelar" class="boton-secundario">Cancelar</button>
+        <button id="eliminar-confirmar" class="boton-peligro">Eliminar</button>
+      </div>
+    </div>
+  </div>
+    </div>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
