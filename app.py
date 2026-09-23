@@ -11,6 +11,24 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "clave-local-vacaciones")
 database.init_db()
 
+TIPOS_PETICION = {
+    "Dias libres",
+    "Dias de vacaciones",
+    "Dias de jornada industrial",
+}
+
+
+def obtener_tipo_peticion(datos):
+    tipos = datos.get("tipos_peticion")
+    if tipos is None:
+        return "Dias de vacaciones"
+    if not isinstance(tipos, list):
+        return None
+    tipos_validos = [tipo for tipo in tipos if tipo in TIPOS_PETICION]
+    if not tipos_validos or len(tipos_validos) != len(set(tipos)):
+        return None
+    return ", ".join(tipos_validos)
+
 
 def responsable_requerido(funcion):
     @wraps(funcion)
@@ -84,9 +102,11 @@ def crear_peticion():
     matricula = (datos.get("matricula") or "").strip()
     fecha_inicio = (datos.get("fecha_inicio") or "").strip()
     fecha_fin = (datos.get("fecha_fin") or "").strip()
+    tipo_peticion = obtener_tipo_peticion(datos)
     forzar = bool(datos.get("forzar", False))
 
-    if not nombre_operario or not matricula or not fecha_inicio or not fecha_fin:
+    if (not nombre_operario or not matricula or not fecha_inicio or not fecha_fin
+            or tipo_peticion is None):
         return jsonify({"success": False, "message": "Todos los campos son obligatorios."}), 400
 
     try:
@@ -115,6 +135,7 @@ def crear_peticion():
         fecha_inicio,
         fecha_fin,
         dias_completos,
+        tipo_peticion,
         session["responsable"]["matricula"],
         session["responsable"]["seccion"],
     )
@@ -123,7 +144,7 @@ def crear_peticion():
         "success": True,
         "id": nuevo_id,
         "dias_completos": dias_completos,
-        "message": "Se ha realizado correctamente.",
+        "message": f"Se ha realizado correctamente: {tipo_peticion}.",
     })
 
 
@@ -135,9 +156,11 @@ def editar_peticion(peticion_id):
     matricula = (datos.get("matricula") or "").strip()
     fecha_inicio = (datos.get("fecha_inicio") or "").strip()
     fecha_fin = (datos.get("fecha_fin") or "").strip()
+    tipo_peticion = obtener_tipo_peticion(datos)
     forzar = bool(datos.get("forzar", False))
 
-    if not nombre_operario or not matricula or not fecha_inicio or not fecha_fin:
+    if (not nombre_operario or not matricula or not fecha_inicio or not fecha_fin
+            or tipo_peticion is None):
         return jsonify({"success": False, "message": "Todos los campos son obligatorios."}), 400
 
     try:
@@ -169,6 +192,7 @@ def editar_peticion(peticion_id):
         fecha_inicio,
         fecha_fin,
         dias_completos,
+        tipo_peticion,
         responsable["matricula"],
         responsable["seccion"],
     )
@@ -178,7 +202,7 @@ def editar_peticion(peticion_id):
     return jsonify({
         "success": True,
         "dias_completos": dias_completos,
-        "message": "La peticion se ha actualizado correctamente.",
+        "message": f"La peticion se ha actualizado correctamente: {tipo_peticion}.",
     })
 
 

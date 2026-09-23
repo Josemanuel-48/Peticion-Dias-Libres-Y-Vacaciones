@@ -88,6 +88,27 @@ class PruebasAplicacion(unittest.TestCase):
         self.assertEqual(peticiones[0]["responsable_matricula"], "RESP-01")
         self.assertEqual(peticiones[0]["responsable_seccion"], "PRODUCCION")
 
+    def test_peticion_guarda_varios_tipos_de_dias(self):
+        self.iniciar_sesion()
+        respuesta = self.cliente.post(
+            "/api/peticiones",
+            json={
+                "nombre_operario": "Operario de prueba",
+                "matricula": "OP-01",
+                "tipos_peticion": ["Dias libres", "Dias de jornada industrial"],
+                "fecha_inicio": "2099-06-10",
+                "fecha_fin": "2099-06-12",
+            },
+        )
+
+        self.assertTrue(respuesta.get_json()["success"])
+        peticion = self.cliente.get("/api/peticiones").get_json()[0]
+        self.assertEqual(
+            peticion["tipo_peticion"],
+            "Dias libres, Dias de jornada industrial",
+        )
+        self.assertIn("Dias libres, Dias de jornada industrial", respuesta.get_json()["message"])
+
     def test_peticion_aparece_despues_de_salir_y_volver_a_entrar(self):
         self.iniciar_sesion("jefe-01", "Produccion")
         self.crear_peticion("OP-01", "2099-05-10", "2099-05-12")

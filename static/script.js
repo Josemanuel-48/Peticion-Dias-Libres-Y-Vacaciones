@@ -11,6 +11,7 @@ const cerrarSesion = document.getElementById("cerrar-sesion");
 const inputInicio = document.getElementById("fecha_inicio");
 const inputFin = document.getElementById("fecha_fin");
 const inputDias = document.getElementById("dias_completos");
+const tiposPeticion = Array.from(document.querySelectorAll("input[name='tipos_peticion']"));
 const mensajeDiv = document.getElementById("mensaje");
 const tablaBody = document.querySelector("#tabla-peticiones tbody");
 const tituloFormulario = document.getElementById("titulo-formulario");
@@ -124,8 +125,9 @@ async function cargarPeticiones() {
     fila.innerHTML = `
       <td>${p.nombre_operario}</td>
       <td>${p.matricula}</td>
-      <td>${p.fecha_inicio}</td>
-      <td>${p.fecha_fin}</td>
+      <td class="tipo-dias">${(p.tipo_peticion || "Dias de vacaciones").replace(", ", ",<br>")}</td>
+      <td class="fecha-peticion">${p.fecha_inicio}</td>
+      <td class="fecha-peticion">${p.fecha_fin}</td>
       <td>${p.dias_completos}</td>
       <td>${p.responsable_matricula || "-"}</td>
       <td>${p.responsable_seccion || "-"}</td>
@@ -145,6 +147,10 @@ function prepararEdicion(peticion) {
   peticionEnEdicion = peticion;
   document.getElementById("nombre_operario").value = peticion.nombre_operario;
   document.getElementById("matricula").value = peticion.matricula;
+  tiposPeticion.forEach((tipo) => {
+    tipo.checked = (peticion.tipo_peticion || "Dias de vacaciones")
+      .split(", ").includes(tipo.value);
+  });
   inputInicio.value = peticion.fecha_inicio;
   inputFin.value = peticion.fecha_fin;
   calcularDias();
@@ -242,6 +248,7 @@ form.addEventListener("submit", async (evento) => {
     matricula: document.getElementById("matricula").value.trim(),
     fecha_inicio: inputInicio.value,
     fecha_fin: inputFin.value,
+    tipos_peticion: tiposPeticion.filter((tipo) => tipo.checked).map((tipo) => tipo.value),
   };
 
   const resultado = await enviarPeticion(datos, false);

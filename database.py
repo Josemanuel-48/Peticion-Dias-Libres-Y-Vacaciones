@@ -29,6 +29,7 @@ def init_db():
             fecha_inicio TEXT NOT NULL,
             fecha_fin TEXT NOT NULL,
             dias_completos INTEGER NOT NULL,
+            tipo_peticion TEXT NOT NULL DEFAULT 'Dias de vacaciones',
             responsable_matricula TEXT,
             responsable_seccion TEXT,
             creado_en TEXT DEFAULT (datetime('now', 'localtime'))
@@ -42,6 +43,11 @@ def init_db():
         conn.execute("ALTER TABLE peticiones ADD COLUMN responsable_matricula TEXT")
     if "responsable_seccion" not in columnas:
         conn.execute("ALTER TABLE peticiones ADD COLUMN responsable_seccion TEXT")
+    if "tipo_peticion" not in columnas:
+        conn.execute(
+            "ALTER TABLE peticiones ADD COLUMN tipo_peticion TEXT "
+            "NOT NULL DEFAULT 'Dias de vacaciones'"
+        )
     conn.execute(
         "UPDATE peticiones SET responsable_matricula = UPPER(responsable_matricula), "
         "responsable_seccion = UPPER(responsable_seccion) "
@@ -116,6 +122,7 @@ def actualizar_peticion(
     fecha_inicio,
     fecha_fin,
     dias_completos,
+    tipo_peticion,
     responsable_matricula,
     responsable_seccion,
 ):
@@ -124,7 +131,8 @@ def actualizar_peticion(
         """
         UPDATE peticiones
         SET nombre_operario = ?, matricula = ?, fecha_inicio = ?, fecha_fin = ?,
-            dias_completos = ?, responsable_matricula = ?, responsable_seccion = ?
+            dias_completos = ?, tipo_peticion = ?, responsable_matricula = ?,
+            responsable_seccion = ?
         WHERE id = ? AND responsable_matricula = ? AND responsable_seccion = ?
         """,
         (
@@ -133,6 +141,7 @@ def actualizar_peticion(
             fecha_inicio,
             fecha_fin,
             dias_completos,
+            tipo_peticion,
             responsable_matricula,
             responsable_seccion,
             peticion_id,
@@ -167,6 +176,7 @@ def insertar_peticion(
     fecha_inicio,
     fecha_fin,
     dias_completos,
+    tipo_peticion,
     responsable_matricula,
     responsable_seccion,
 ):
@@ -175,9 +185,9 @@ def insertar_peticion(
         """
         INSERT INTO peticiones (
             nombre_operario, matricula, fecha_inicio, fecha_fin, dias_completos,
-            responsable_matricula, responsable_seccion
+            tipo_peticion, responsable_matricula, responsable_seccion
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             nombre_operario,
@@ -185,6 +195,7 @@ def insertar_peticion(
             fecha_inicio,
             fecha_fin,
             dias_completos,
+            tipo_peticion,
             responsable_matricula,
             responsable_seccion,
         ),

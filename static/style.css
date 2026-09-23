@@ -1,12 +1,13 @@
 :root {
-  --azul-oscuro: #0f2027;
-  --azul-medio: #2c5364;
-  --azul-claro: #4facfe;
+  --azul-oscuro: #102a43;
+  --azul-medio: #176b87;
+  --azul-claro: #2ca6a4;
   --verde: #2ecc71;
   --rojo: #e74c3c;
   --blanco: #ffffff;
-  --gris-suave: #f4f6f8;
-  --gris-texto: #333333;
+  --gris-suave: #eef3f6;
+  --gris-texto: #243746;
+  --borde: #d8e2e8;
 }
 
 * {
@@ -16,22 +17,23 @@
 body {
   margin: 0;
   font-family: "Segoe UI", Arial, sans-serif;
-  background: var(--gris-suave);
+  background: linear-gradient(135deg, #eef4f5 0%, #f8fafb 55%, #e8f1f1 100%);
   color: var(--gris-texto);
+  min-height: 100vh;
 }
 
 .cabecera {
-  background: linear-gradient(135deg, var(--azul-oscuro), var(--azul-medio));
+  background: linear-gradient(120deg, var(--azul-oscuro), var(--azul-medio));
   color: var(--blanco);
-  padding: 24px 32px;
+  padding: 28px 32px 24px;
   text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 18px rgba(16, 42, 67, 0.2);
 }
 
 .cabecera h1 {
   margin: 0;
-  font-size: 1.8rem;
-  letter-spacing: 1px;
+  font-size: clamp(1.35rem, 3vw, 1.85rem);
+  letter-spacing: 0.2px;
 }
 
 .responsable-activo {
@@ -55,8 +57,8 @@ body {
 .contenedor {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  padding: 24px;
+  gap: 22px;
+  padding: 28px 24px 40px;
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -67,16 +69,19 @@ body {
 
 .tarjeta {
   background: var(--blanco);
-  border-radius: 12px;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
   padding: 20px 24px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 24px rgba(16, 42, 67, 0.07);
 }
 
 .tarjeta h2 {
   margin-top: 0;
   color: var(--azul-medio);
-  border-bottom: 2px solid var(--azul-claro);
-  padding-bottom: 8px;
+  border-bottom: 1px solid var(--borde);
+  padding-bottom: 12px;
+  margin-bottom: 18px;
+  font-size: 1.15rem;
 }
 
 form label {
@@ -90,7 +95,7 @@ form label {
 form input {
   width: 100%;
   padding: 10px;
-  border: 1px solid #ccc;
+  border: 1px solid #cbd7de;
   border-radius: 6px;
   font-size: 0.95rem;
 }
@@ -99,6 +104,60 @@ form input:focus {
   outline: none;
   border-color: var(--azul-claro);
   box-shadow: 0 0 0 2px rgba(79, 172, 254, 0.3);
+}
+
+.tipos-peticion {
+  border: 0;
+  padding: 0;
+  margin: 16px 0 4px;
+}
+
+.tipos-peticion legend {
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+}
+
+.boton-tipo {
+  display: inline-flex;
+  margin: 0 8px 8px 0;
+  cursor: pointer;
+}
+
+.boton-tipo input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.boton-tipo span {
+  padding: 9px 12px;
+  border: 1px solid #c5d3da;
+  border-radius: 6px;
+  background: var(--blanco);
+  color: var(--gris-texto);
+  font-size: 0.9rem;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.boton-tipo input:checked + span {
+  background: rgba(23, 107, 135, 0.1);
+  border-color: var(--azul-medio);
+  box-shadow: inset 0 0 0 1px var(--azul-medio);
+  color: var(--azul-oscuro);
+}
+
+.boton-tipo input:checked + span::before {
+  content: "✓";
+  margin-right: 6px;
+  color: var(--azul-medio);
+  font-weight: 700;
+}
+
+.boton-tipo input:focus-visible + span {
+  outline: 2px solid var(--azul-claro);
+  outline-offset: 2px;
 }
 
 .fila-fechas {
@@ -111,26 +170,35 @@ form input:focus {
   margin-top: 18px;
   width: 100%;
   padding: 12px;
-  background: linear-gradient(135deg, var(--azul-medio), var(--azul-claro));
+  background: linear-gradient(120deg, var(--azul-medio), var(--azul-claro));
   color: var(--blanco);
   border: none;
   border-radius: 8px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
 }
 
 .boton-principal:hover {
   opacity: 0.9;
+  box-shadow: 0 5px 12px rgba(23, 107, 135, 0.25);
+  transform: translateY(-1px);
 }
 
 .boton-secundario {
-  background: var(--gris-suave);
-  border: 1px solid #ccc;
+  background: var(--blanco);
+  border: 1px solid #c5d3da;
   border-radius: 6px;
   padding: 6px 12px;
   cursor: pointer;
+  color: var(--gris-texto);
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.boton-secundario:hover {
+  background: var(--gris-suave);
+  border-color: var(--azul-claro);
 }
 
 .boton-peligro {
@@ -263,18 +331,35 @@ form input:focus {
 
 table {
   width: 100%;
+  min-width: 980px;
   border-collapse: collapse;
 }
 
 th, td {
   padding: 10px 12px;
   text-align: left;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e3eaee;
+  vertical-align: top;
+}
+
+.tipo-dias {
+  width: 210px;
+  min-width: 210px;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
+}
+
+.fecha-peticion {
+  white-space: nowrap;
 }
 
 th {
-  background: var(--azul-medio);
+  background: var(--azul-oscuro);
   color: var(--blanco);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
 }
 
 tbody tr:hover {
@@ -293,6 +378,7 @@ tbody tr:hover {
 .modal-contenido {
   background: var(--blanco);
   padding: 24px;
+  border: 1px solid var(--borde);
   border-radius: 10px;
   max-width: 420px;
   width: 90%;
@@ -312,8 +398,24 @@ tbody tr:hover {
 }
 
 @media (max-width: 800px) {
+  .cabecera {
+    padding: 22px 18px 18px;
+  }
+  .responsable-activo {
+    flex-direction: column;
+    gap: 10px;
+  }
   .contenedor {
     grid-template-columns: 1fr;
+    padding: 18px 12px 28px;
+    gap: 16px;
+  }
+  .tarjeta {
+    padding: 18px 16px;
+  }
+  .fila-fechas {
+    grid-template-columns: 1fr;
+    gap: 0;
   }
   .lista-panel {
     grid-column: 1;

@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Peticion de Vacaciones Personales</title>
+<title>Petición Días Libres y Días de Vacaciones</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
   <header class="cabecera">
-    <h1>Peticion de Vacaciones Personales</h1>
+    <h1>Petición Días Libres y Días de Vacaciones</h1>
     <div id="responsable-activo" class="responsable-activo oculto">
       <span id="datos-responsable"></span>
-      <button id="cerrar-sesion" class="boton-secundario">Cerrar sesion</button>
+      <button id="cerrar-sesion" class="boton-secundario">Cerrar sesión</button>
     </div>
   </header>
 
@@ -19,10 +19,10 @@
     <section id="panel-login" class="tarjeta login-panel">
       <h2>Acceso del responsable</h2>
       <form id="form-login">
-        <label for="login-matricula">Matricula</label>
+        <label for="login-matricula">Matrícula</label>
         <input type="text" id="login-matricula" required autocomplete="username">
 
-        <label for="login-seccion">Seccion donde trabaja</label>
+        <label for="login-seccion">Sección donde trabaja</label>
         <input type="text" id="login-seccion" required>
 
         <button type="submit" class="boton-principal">Entrar</button>
@@ -32,13 +32,29 @@
 
     <div id="panel-aplicacion" class="oculto">
     <section class="tarjeta formulario">
-      <h2 id="titulo-formulario">Nueva peticion</h2>
+      <h2 id="titulo-formulario">Nueva petición</h2>
       <form id="form-vacaciones">
         <label for="nombre_operario">Nombre del operario</label>
         <input type="text" id="nombre_operario" name="nombre_operario" required>
 
-        <label for="matricula">Matricula</label>
+        <label for="matricula">Matrícula</label>
         <input type="text" id="matricula" name="matricula" required>
+
+        <fieldset class="tipos-peticion">
+          <legend>Tipo de días</legend>
+          <label class="boton-tipo">
+            <input type="checkbox" name="tipos_peticion" value="Dias libres">
+            <span>Días libres</span>
+          </label>
+          <label class="boton-tipo">
+            <input type="checkbox" name="tipos_peticion" value="Dias de vacaciones">
+            <span>Días de vacaciones</span>
+          </label>
+          <label class="boton-tipo">
+            <input type="checkbox" name="tipos_peticion" value="Dias de jornada industrial">
+            <span>Días de jornada industrial</span>
+          </label>
+        </fieldset>
 
         <div class="fila-fechas">
           <div>
@@ -51,27 +67,27 @@
           </div>
         </div>
 
-        <label>Dias completos</label>
+        <label for="dias_completos">Días completos</label>
         <input type="text" id="dias_completos" name="dias_completos" readonly>
 
-        <button id="boton-formulario" type="submit" class="boton-principal">Solicitar vacaciones</button>
-        <button id="cancelar-edicion" type="button" class="boton-secundario oculto">Cancelar edicion</button>
+        <button id="boton-formulario" type="submit" class="boton-principal">Aprobar Solicitud</button>
+        <button id="cancelar-edicion" type="button" class="boton-secundario oculto">Cancelar edición</button>
       </form>
 
       <div id="mensaje" class="mensaje oculto"></div>
     </section>
 
     <section class="tarjeta calendario-panel">
-      <h2>Calendario de vacaciones</h2>
+      <h2>Calendario de Disponibilidad</h2>
       <div class="calendario-cabecera">
-        <button id="mes-anterior" class="boton-secundario">&laquo;</button>
+        <button id="mes-anterior" class="boton-secundario" title="Mes anterior" aria-label="Mes anterior">&laquo;</button>
         <span id="titulo-mes"></span>
-        <button id="mes-siguiente" class="boton-secundario">&raquo;</button>
+        <button id="mes-siguiente" class="boton-secundario" title="Mes siguiente" aria-label="Mes siguiente">&raquo;</button>
       </div>
       <div id="calendario" class="calendario-grid"></div>
       <div class="leyenda">
-        <span class="leyenda-item"><i class="cuadro ocupado"></i> Dias ocupados</span>
-        <span class="leyenda-item"><i class="cuadro libre"></i> Dias libres</span>
+        <span class="leyenda-item"><i class="cuadro ocupado"></i> Días ocupados</span>
+        <span class="leyenda-item"><i class="cuadro libre"></i> Días libres</span>
       </div>
     </section>
 
@@ -81,12 +97,13 @@
         <thead>
           <tr>
             <th>Operario</th>
-            <th>Matricula</th>
+            <th>Matrícula</th>
+            <th>Tipo de días</th>
             <th>Inicio</th>
             <th>Fin</th>
-            <th>Dias</th>
+            <th>Días</th>
             <th>Responsable</th>
-            <th>Seccion</th>
+            <th>Sección</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -107,8 +124,8 @@
   </div>
   <div id="modal-eliminacion" class="modal oculto">
     <div class="modal-contenido">
-      <h3>Confirmar eliminacion</h3>
-      <p>¿Seguro que quiere eliminar la tarea?</p>
+      <h3>Confirmar eliminación</h3>
+      <p>¿Seguro que quiere eliminar la petición?</p>
       <div class="modal-botones">
         <button id="eliminar-cancelar" class="boton-secundario">Cancelar</button>
         <button id="eliminar-confirmar" class="boton-peligro">Eliminar</button>
