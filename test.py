@@ -151,11 +151,35 @@ class PruebasAplicacion(unittest.TestCase):
         self.assertEqual(peticiones_b[0]["responsable_matricula"], "RESP-B")
 
         fechas = self.cliente.get("/api/fechas-ocupadas").get_json()
-        self.assertEqual(
-            set(fechas),
-            {"2099-02-10", "2099-02-11", "2099-02-20", "2099-02-21"},
-        )
+        self.assertEqual(set(fechas), {"2099-02-10", "2099-02-11"})
         self.assertTrue(all(isinstance(fecha, str) for fecha in fechas))
+
+        fechas_b = otro_cliente.get("/api/fechas-ocupadas").get_json()
+        self.assertEqual(set(fechas_b), {"2099-02-20", "2099-02-21"})
+
+    def test_otra_seccion_no_muestra_ni_bloquea_fechas(self):
+        self.iniciar_sesion("RESP-A", "Produccion")
+        self.crear_peticion("OP-A", "2099-07-10", "2099-07-12")
+
+        otra_seccion = self.app.test_client()
+        otra_seccion.post(
+            "/api/login",
+            json={"matricula": "RESP-B", "seccion": "Mantenimiento"},
+        )
+        self.assertEqual(
+            otra_seccion.get("/api/fechas-ocupadas").get_json(),
+            [],
+        )
+        respuesta = otra_seccion.post(
+            "/api/peticiones",
+            json={
+                "nombre_operario": "Operario B",
+                "matricula": "OP-B",
+                "fecha_inicio": "2099-07-10",
+                "fecha_fin": "2099-07-12",
+            },
+        )
+        self.assertTrue(respuesta.get_json()["success"])
 
     def test_conflicto_no_revela_datos(self):
         self.iniciar_sesion()

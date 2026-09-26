@@ -78,10 +78,12 @@ def obtener_peticiones(responsable_matricula=None, responsable_seccion=None):
     return [dict(fila) for fila in filas]
 
 
-def obtener_fechas_ocupadas():
+def obtener_fechas_ocupadas(responsable_seccion):
     conn = get_connection()
     filas = conn.execute(
-        "SELECT fecha_inicio, fecha_fin FROM peticiones"
+        "SELECT fecha_inicio, fecha_fin FROM peticiones "
+        "WHERE responsable_seccion = ?",
+        (responsable_seccion,),
     ).fetchall()
     conn.close()
 
@@ -95,15 +97,18 @@ def obtener_fechas_ocupadas():
     return sorted(fechas)
 
 
-def obtener_solapamientos(fecha_inicio, fecha_fin, matricula=None, excluir_id=None):
+def obtener_solapamientos(
+    fecha_inicio, fecha_fin, responsable_seccion, matricula=None, excluir_id=None
+):
     """Devuelve las peticiones existentes cuyo rango de fechas se solapa
     con el rango indicado. Si se pasa matricula, excluye esa matricula
     (para permitir editar/ampliar la propia petición)."""
     conn = get_connection()
     query = (
-        "SELECT * FROM peticiones WHERE fecha_inicio <= ? AND fecha_fin >= ?"
+        "SELECT * FROM peticiones WHERE fecha_inicio <= ? AND fecha_fin >= ? "
+        "AND responsable_seccion = ?"
     )
-    params = [fecha_fin, fecha_inicio]
+    params = [fecha_fin, fecha_inicio, responsable_seccion]
     if matricula:
         query += " AND matricula != ?"
         params.append(matricula)

@@ -33,9 +33,10 @@ otros operarios antes de confirmar.
      ¿Desea continuar con la peticion?"**. Si el responsable confirma, la peticion
      se guarda igualmente.
 4. El calendario mensual (con navegacion de mes anterior/siguiente) pinta en rojo
-   todos los dias ya reservados por cualquier operario.
-5. Cada responsable solo ve sus propias peticiones. El calendario muestra las fechas
-  ocupadas de forma anonima.
+  los dias ocupados dentro de la seccion del responsable conectado.
+5. Cada responsable solo ve sus propias peticiones. Los responsables de una misma
+  seccion comparten disponibilidad anonima; otras secciones no aparecen ni generan
+  conflictos.
 6. Las peticiones se pueden editar o eliminar. El borrado requiere confirmacion y
   solo puede realizarlo el responsable que creo la peticion.
 
@@ -146,9 +147,10 @@ estas opciones:
 - Integracion con Active Directory o Microsoft Entra ID.
 - Inicio de sesion corporativo mediante SSO.
 
-Cada jefe debe ver unicamente sus propias peticiones. El calendario puede
-mostrar las fechas ocupadas de forma anonima. Un administrador autorizado puede
-tener una pantalla separada para consultar todas las peticiones.
+Cada jefe debe ver unicamente sus propias peticiones. Los responsables de una
+misma seccion comparten las fechas ocupadas de forma anonima; las demas secciones
+se mantienen independientes. Un administrador autorizado puede tener una
+pantalla separada para consultar todas las peticiones.
 
 ## Puesta en marcha recomendada
 

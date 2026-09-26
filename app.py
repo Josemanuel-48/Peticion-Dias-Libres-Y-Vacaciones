@@ -1,4 +1,5 @@
 """Aplicacion Flask: Dashboard de Peticion de Vacaciones Personales."""
+
 from datetime import datetime
 import os
 from functools import wraps
@@ -90,7 +91,8 @@ def listar_peticiones():
 @app.route("/api/fechas-ocupadas", methods=["GET"])
 @responsable_requerido
 def listar_fechas_ocupadas():
-    return jsonify(database.obtener_fechas_ocupadas())
+    seccion = session["responsable"]["seccion"]
+    return jsonify(database.obtener_fechas_ocupadas(seccion))
 
 
 @app.route("/api/peticiones", methods=["POST"])
@@ -120,7 +122,11 @@ def crear_peticion():
             "message": "La fecha de fin debe ser igual o posterior a la fecha de inicio."
         }), 400
 
-    solapamientos = database.obtener_solapamientos(fecha_inicio, fecha_fin)
+    solapamientos = database.obtener_solapamientos(
+        fecha_inicio,
+        fecha_fin,
+        session["responsable"]["seccion"],
+    )
 
     if solapamientos and not forzar:
         return jsonify({
@@ -175,7 +181,10 @@ def editar_peticion(peticion_id):
         }), 400
 
     solapamientos = database.obtener_solapamientos(
-        fecha_inicio, fecha_fin, excluir_id=peticion_id
+        fecha_inicio,
+        fecha_fin,
+        session["responsable"]["seccion"],
+        excluir_id=peticion_id,
     )
     if solapamientos and not forzar:
         return jsonify({
