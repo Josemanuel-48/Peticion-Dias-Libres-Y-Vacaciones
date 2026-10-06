@@ -1,4 +1,8 @@
-"""Aplicacion Flask: Dashboard de Peticion de Vacaciones Personales."""
+"""API Flask para gestionar peticiones de dias libres y vacaciones.
+
+Las rutas sirven la pagina principal y exponen operaciones JSON para la sesion
+del responsable, la consulta de disponibilidad y el mantenimiento de peticiones.
+"""
 
 from datetime import datetime
 import os
@@ -9,9 +13,13 @@ from flask import Flask, jsonify, render_template, request, session
 import database
 
 app = Flask(__name__)
+# Flask firma la cookie de sesion con esta clave; en despliegues debe configurarse
+# mediante una variable de entorno y no utilizarse el valor local de respaldo.
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "clave-local-vacaciones")
+# Garantiza que el esquema de almacenamiento este preparado antes de atender rutas.
 database.init_db()
 
+# Valores admitidos por la API para evitar guardar categorias arbitrarias.
 TIPOS_PETICION = {
     "Dias libres",
     "Dias de vacaciones",
@@ -20,6 +28,11 @@ TIPOS_PETICION = {
 
 
 def obtener_tipo_peticion(datos):
+    """Valida las categorias recibidas y devuelve su representacion almacenada.
+
+    Se conserva el tipo de vacaciones predeterminado para clientes antiguos que
+    no envian ``tipos_peticion``.
+    """
     tipos = datos.get("tipos_peticion")
     if tipos is None:
         return "Dias de vacaciones"
@@ -32,6 +45,7 @@ def obtener_tipo_peticion(datos):
 
 
 def responsable_requerido(funcion):
+    """Impide acceder a rutas protegidas si no hay responsable en la sesion."""
     @wraps(funcion)
     def envoltura(*args, **kwargs):
         if "responsable" not in session:
@@ -42,6 +56,7 @@ def responsable_requerido(funcion):
 
 
 def calcular_dias_completos(fecha_inicio: str, fecha_fin: str) -> int:
+    """Cuenta ambos extremos del intervalo, por lo que un mismo dia cuenta como uno."""
     inicio = datetime.strptime(fecha_inicio, "%Y-%m-%d")
     fin = datetime.strptime(fecha_fin, "%Y-%m-%d")
     return (fin - inicio).days + 1
@@ -49,11 +64,13 @@ def calcular_dias_completos(fecha_inicio: str, fecha_fin: str) -> int:
 
 @app.route("/")
 def index():
+    """Entrega la interfaz web principal."""
     return render_template("index.html")
 
 
 @app.route("/api/login", methods=["POST"])
 def iniciar_sesion():
+    """Inicia una sesion de responsable usando matricula y seccion."""
     datos = request.get_json(force=True) or {}
     matricula = (datos.get("matricula") or "").strip().upper()
     seccion = (datos.get("seccion") or "").strip().upper()
@@ -70,11 +87,13 @@ def iniciar_sesion():
 
 @app.route("/api/session", methods=["GET"])
 def consultar_sesion():
+    """Devuelve los datos del responsable autenticado, o ``null`` si no existe."""
     return jsonify({"responsable": session.get("responsable")})
 
 
 @app.route("/api/logout", methods=["POST"])
 def cerrar_sesion():
+    """Elimina todos los datos de la sesion actual."""
     session.clear()
     return jsonify({"success": True})
 
@@ -82,6 +101,7 @@ def cerrar_sesion():
 @app.route("/api/peticiones", methods=["GET"])
 @responsable_requerido
 def listar_peticiones():
+    """Lista las peticiones creadas por el responsable de la sesion."""
     responsable = session["responsable"]
     return jsonify(database.obtener_peticiones(
         responsable["matricula"], responsable["seccion"]
@@ -91,6 +111,7 @@ def listar_peticiones():
 @app.route("/api/fechas-ocupadas", methods=["GET"])
 @responsable_requerido
 def listar_fechas_ocupadas():
+    """Consulta las fechas ocupadas en la seccion del responsable."""
     seccion = session["responsable"]["seccion"]
     return jsonify(database.obtener_fechas_ocupadas(seccion))
 
@@ -98,6 +119,11 @@ def listar_fechas_ocupadas():
 @app.route("/api/peticiones", methods=["POST"])
 @responsable_requerido
 def crear_peticion():
+    """Valida y registra una peticion nueva.
+
+    Si ya hay peticiones que coinciden en fechas, solicita confirmacion salvo que
+    el cliente reintente enviando ``forzar`` como verdadero.
+    """
     datos = request.get_json(force=True) or {}
 
     nombre_operario = (datos.get("nombre_operario") or "").strip()
@@ -122,6 +148,7 @@ def crear_peticion():
             "message": "La fecha de fin debe ser igual o posterior a la fecha de inicio."
         }), 400
 
+    # La disponibilidad se comprueba por seccion, no solo por operario.
     solapamientos = database.obtener_solapamientos(
         fecha_inicio,
         fecha_fin,
@@ -157,6 +184,7 @@ def crear_peticion():
 @app.route("/api/peticiones/<int:peticion_id>", methods=["PUT"])
 @responsable_requerido
 def editar_peticion(peticion_id):
+    """Actualiza una peticion existente tras validar fechas y posibles conflictos."""
     datos = request.get_json(force=True) or {}
     nombre_operario = (datos.get("nombre_operario") or "").strip()
     matricula = (datos.get("matricula") or "").strip()
@@ -180,6 +208,7 @@ def editar_peticion(peticion_id):
             "message": "La fecha de fin debe ser igual o posterior a la fecha de inicio.",
         }), 400
 
+    # No considerar la propia peticion como conflicto al revisar el nuevo intervalo.
     solapamientos = database.obtener_solapamientos(
         fecha_inicio,
         fecha_fin,
@@ -218,6 +247,7 @@ def editar_peticion(peticion_id):
 @app.route("/api/peticiones/<int:peticion_id>", methods=["DELETE"])
 @responsable_requerido
 def borrar_peticion(peticion_id):
+    """Elimina una peticion solo si pertenece al responsable y a su seccion."""
     responsable = session["responsable"]
     eliminado = database.eliminar_peticion(
         peticion_id, responsable["matricula"], responsable["seccion"]
@@ -228,4 +258,5 @@ def borrar_peticion(peticion_id):
 
 
 if __name__ == "__main__":
+    # Permite iniciar el servidor de desarrollo ejecutando directamente este archivo.
     app.run(debug=True)

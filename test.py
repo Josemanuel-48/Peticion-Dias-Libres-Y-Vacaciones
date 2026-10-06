@@ -12,11 +12,16 @@ import database
 
 
 class PruebasAplicacion(unittest.TestCase):
+    """Pruebas de integracion HTTP con una base de datos SQLite temporal."""
+
     @classmethod
     def setUpClass(cls):
+        """Configura una base aislada y carga la aplicacion en modo de prueba."""
         cls.directorio_temporal = tempfile.TemporaryDirectory()
         database.DB_PATH = Path(cls.directorio_temporal.name) / "pruebas.sqlite"
 
+        # La aplicacion inicializa la base de datos al importarse; se vuelve a
+        # cargar despues de redirigir DB_PATH para no tocar la base real.
         sys.modules.pop("app", None)
         import app
 
@@ -25,9 +30,11 @@ class PruebasAplicacion(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        """Elimina el directorio temporal al terminar toda la suite."""
         cls.directorio_temporal.cleanup()
 
     def setUp(self):
+        """Deja las tablas sin peticiones y crea un cliente HTTP nuevo por prueba."""
         database.init_db()
         conexion = database.get_connection()
         try:
@@ -38,12 +45,14 @@ class PruebasAplicacion(unittest.TestCase):
         self.cliente = self.app.test_client()
 
     def iniciar_sesion(self, matricula="RESP-01", seccion="Produccion"):
+        """Autentica el cliente de prueba con los datos de responsable indicados."""
         return self.cliente.post(
             "/api/login",
             json={"matricula": matricula, "seccion": seccion},
         )
 
     def crear_peticion(self, matricula="OP-01", inicio="2099-01-10", fin="2099-01-12"):
+        """Crea una peticion con valores comunes y permite cambiar operario y fechas."""
         return self.cliente.post(
             "/api/peticiones",
             json={
@@ -55,10 +64,12 @@ class PruebasAplicacion(unittest.TestCase):
         )
 
     def test_api_protegida_sin_login(self):
+        """Las rutas privadas rechazan clientes que no tienen una sesion activa."""
         respuesta = self.cliente.get("/api/peticiones")
         self.assertEqual(respuesta.status_code, 401)
 
     def test_login_sesion_y_pagina_principal(self):
+        """La pagina carga antes y despues del login y la API conserva la sesion."""
         pagina_antes = self.cliente.get("/")
         self.assertEqual(pagina_antes.status_code, 200)
         self.assertIn("form-login", pagina_antes.get_data(as_text=True))
@@ -79,6 +90,7 @@ class PruebasAplicacion(unittest.TestCase):
         self.assertIn("panel-aplicacion", pagina_despues.get_data(as_text=True))
 
     def test_peticion_guarda_responsable(self):
+        """Cada nueva peticion queda asociada al responsable que la envio."""
         self.iniciar_sesion("RESP-01", "Produccion")
         respuesta = self.crear_peticion()
         self.assertEqual(respuesta.status_code, 200)
@@ -89,6 +101,7 @@ class PruebasAplicacion(unittest.TestCase):
         self.assertEqual(peticiones[0]["responsable_seccion"], "PRODUCCION")
 
     def test_peticion_guarda_varios_tipos_de_dias(self):
+        """La API almacena y confirma correctamente una seleccion de varios tipos."""
         self.iniciar_sesion()
         respuesta = self.cliente.post(
             "/api/peticiones",
@@ -110,6 +123,7 @@ class PruebasAplicacion(unittest.TestCase):
         self.assertIn("Dias libres, Dias de jornada industrial", respuesta.get_json()["message"])
 
     def test_peticion_aparece_despues_de_salir_y_volver_a_entrar(self):
+        """Las peticiones persisten y vuelven a estar visibles tras reautenticarse."""
         self.iniciar_sesion("jefe-01", "Produccion")
         self.crear_peticion("OP-01", "2099-05-10", "2099-05-12")
         self.assertEqual(len(self.cliente.get("/api/peticiones").get_json()), 1)
@@ -125,6 +139,7 @@ class PruebasAplicacion(unittest.TestCase):
         self.assertEqual(peticiones[0]["nombre_operario"], "Operario de prueba")
 
     def test_responsables_solo_ven_sus_peticiones(self):
+        """Las consultas y fechas ocupadas estan aisladas por seccion responsable."""
         self.iniciar_sesion("RESP-A", "Produccion")
         self.crear_peticion("OP-A", "2099-02-10", "2099-02-11")
 
@@ -158,6 +173,7 @@ class PruebasAplicacion(unittest.TestCase):
         self.assertEqual(set(fechas_b), {"2099-02-20", "2099-02-21"})
 
     def test_otra_seccion_no_muestra_ni_bloquea_fechas(self):
+        """Una peticion de otra seccion no se muestra ni provoca un conflicto."""
         self.iniciar_sesion("RESP-A", "Produccion")
         self.crear_peticion("OP-A", "2099-07-10", "2099-07-12")
 
@@ -182,6 +198,7 @@ class PruebasAplicacion(unittest.TestCase):
         self.assertTrue(respuesta.get_json()["success"])
 
     def test_conflicto_no_revela_datos(self):
+        """Los solapamientos se notifican sin exponer los datos de otras peticiones."""
         self.iniciar_sesion()
         self.crear_peticion("OP-01", "2099-03-10", "2099-03-12")
         conflicto = self.crear_peticion("OP-02", "2099-03-11", "2099-03-13")
@@ -191,6 +208,7 @@ class PruebasAplicacion(unittest.TestCase):
         self.assertNotIn("solapamientos", datos)
 
     def test_editar_y_eliminar_solo_para_su_responsable(self):
+        """Permite editar y borrar la propia peticion, pero no la de otro responsable."""
         self.iniciar_sesion("RESP-A", "Produccion")
         creada = self.crear_peticion("OP-A", "2099-04-10", "2099-04-11")
         peticion_id = creada.get_json()["id"]
@@ -223,5 +241,6 @@ class PruebasAplicacion(unittest.TestCase):
 
 
 if __name__ == "__main__":
+    # Conserva el codigo de salida de la suite para automatizaciones y CI.
     resultado = unittest.main(verbosity=2, exit=False)
     raise SystemExit(0 if resultado.result.wasSuccessful() else 1)
